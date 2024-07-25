@@ -1,6 +1,14 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Drawer from "../../Components/Drawer";
+import {
+  baseURL,
+  CATEGORIES,
+  TICKETS,
+  TICKETS_CREATE,
+} from "../../Components/Api";
 import {
   Box,
   Checkbox,
@@ -10,61 +18,73 @@ import {
   OutlinedInput,
 } from "@mui/material";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Loading } from "../../Components/Loading";
 
 export default function AddTicket() {
   const navigate = useNavigate();
   const location = useLocation();
 
   const [formData, setFormData] = useState({
-    name: "",
+    title: "",
     price: "",
-    taxes: "",
+    tax: "",
     categoryId: "",
-    currencyId: "",
+    currency: "",
     days: [],
   });
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
     const { id } = location.state || {};
-    if (id) {
+    if (id && !loading) {
       fetchTicketDetails(id);
     }
-    fetchCategories();
-  }, [location.state]);
+  }, [location.state, loading]);
 
+  // for update 
   const fetchTicketDetails = async (id) => {
     try {
-      const response = await axios.get(`http://org-bay.runasp.net/api/Tickets`);
+      const response = await axios.get(`${baseURL}/${TICKETS}`);
       const ticket = response.data.find((ticket) => ticket.id === id);
-      const { name, price, taxes, categoryId, currencyId } = ticket;
-      setFormData({
-        name,
-        price,
-        taxes,
-        categoryId,
-        currencyId,
-        days: [],
-      });
-    } catch {
-      console.log("error fetching data of ticket ");
+      if (ticket) {
+        const { name, price, tax, categoryName, currency, days } = ticket;
+        const category = categories.find((cat) => cat.title === categoryName);
+        setFormData({
+          title: name,
+          price: price,
+          tax: tax,
+          categoryId: category ? category.id : '',
+          // currency: currency,
+          days: days.map((day) => day.id) || [],
+        });
+      }
+    } catch (error) {
+      console.log("Error fetching data of ticket:", error);
     }
   };
 
+  // fetch categories 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get("http://org-bay.runasp.net/api/Categories");
+      const response = await axios.get(`${baseURL}/${CATEGORIES}`);
       setCategories(response.data);
+      setLoading(false);
     } catch {
-      console.log("error fetching categories");
+      console.log("Error fetching categories");
+      setLoading(false);
     }
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (type === "checkbox") {
-      const dayValue = parseInt(value);
+      const dayValue = parseInt(value, 10);
       setFormData((prevState) => {
         if (checked) {
           return { ...prevState, days: [...prevState.days, dayValue] };
@@ -86,48 +106,100 @@ export default function AddTicket() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
-    if (!formData.name) newErrors.name = "من فضلك ادخل الاسم";
-    if (!formData.price) newErrors.price = " من فضلك ادخل السعر";
-    if (!formData.taxes) newErrors.taxes = "من فضلك ادخل الضرائب";
+
+    if (!formData.title) newErrors.title = "من فضلك ادخل الاسم";
+
+    const price = parseFloat(formData.price);
+    if (isNaN(price)) {
+      newErrors.price = "من فضلك ادخل السعر";
+    }
+    if (price <= 0) {
+      newErrors.price = "يحب ان يكون السعر رقما اكبر من صفر";
+    }
+
+    const tax = parseFloat(formData.tax);
+    if (isNaN(tax)) {
+      newErrors.tax = "من فضلك ادخل الضرائب";
+    }
+    if (tax <= 0) {
+      newErrors.tax = "يجب أن تكون رقمًا أكبر من صفر";
+    }
+
     if (!formData.categoryId) newErrors.categoryId = "من فضلك اختر نوع التذكرة";
-    if (!formData.currencyId) newErrors.currencyId = "من فضلك اختر العملة";
+    // if (!formData.currency && !location.state) newErrors.currency = "من فضلك اختر العملة";
     if (formData.days.length === 0) newErrors.days = "من فضلك اختر اليوم";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
+
     try {
+      setLoading(true);
+
+      const payload = {
+        ...formData,
+        // price: parseFloat(formData.price),
+        tax: parseFloat(formData.tax),
+        currency: formData.currency ? parseInt(formData.currency, 10) : undefined,
+        days: formData.days.map((day) => parseInt(day, 10)),
+      };
+      // update ticket
       if (location.state && location.state.id) {
         const response = await axios.put(
-          `http://org-bay.runasp.net/api/Tickets/${location.state.id}`,
-          formData
+          `${baseURL}/${TICKETS}/${location.state.id}`,
+          payload,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
         );
         localStorage.setItem("alertMessage", "تم تعديل التذكرة بنجاح");
       } else {
+        // add ticket 
         const response = await axios.post(
-          "http://org-bay.runasp.net/api/Tickets",
-          formData
+          `${baseURL}/${TICKETS_CREATE}`,
+          payload,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
         );
-        console.log(response);
         if (response.data) {
           localStorage.setItem("alertMessage", "تم إضافة التذكرة بنجاح");
         }
       }
+
+      setLoading(false);
       navigate("/AllTickets");
     } catch (error) {
+      setLoading(false);
       console.error("There was an error adding the ticket!", error);
     }
   };
 
+  // change currency from numbers to arabic 
+  // const currencyNames = {
+  //   0: "دولار أمريكي",
+  //   1: "يورو",
+  //   2: "جنيه مصري",
+  //   3: "جنيه إسترليني",
+  //   4: "ريال سعودي",
+  //   5: "درهم إماراتي",
+  //   6: "دينار كويتي",
+  // };
+
   return (
     <div>
+      {loading && <Loading />}
       <Drawer />
-      <Box sx={{ width: "80%", direction: "rtl" }}>
-        <div>
-          <h2 className="add-head">اضف التذاكر</h2>
+      <Box className='box-container'>
+        <div className="table-head">
+          <h2 className="mb-0">اضف التذاكر</h2>
           <Link to="/AllTickets">
-            <button className="btn btn-primary add-button">رجوع </button>
+            <button className="btn btn-primary add-button mb-2">رجوع </button>
           </Link>
         </div>
         <div className="card table-style mb-5" style={{ direction: "rtl" }}>
@@ -145,21 +217,21 @@ export default function AddTicket() {
                       </label>
                       <input
                         type="text"
-                        name="name"
-                        value={formData.name}
+                        name="title"
+                        value={formData.title}
                         onChange={handleChange}
                         className="form-control"
                         id="name"
                       />
-                      {errors.name && (
-                        <h6 className="error-log">{errors.name}</h6>
+                      {errors.title && (
+                        <h6 className="error-log">{errors.title}</h6>
                       )}
                     </div>
                   </div>
 
                   <div className="col-md-6">
                     <label htmlFor="categoryId" className="d-flex">
-                      نوع التذكره
+                      نوع التذكرة
                     </label>
                     <select
                       name="categoryId"
@@ -170,7 +242,7 @@ export default function AddTicket() {
                       <option value="">اختر نوع التذكرة</option>
                       {categories.map((category) => (
                         <option key={category.id} value={category.id}>
-                          {category.name}
+                          {category.title}
                         </option>
                       ))}
                     </select>
@@ -197,154 +269,145 @@ export default function AddTicket() {
                     )}
                   </div>
 
-                  <div className="col-md-3">
-                    <label htmlFor="taxes" className="d-flex">
+                  <div className="col-md-6">
+                    <label htmlFor="tax" className="d-flex">
                       الضرائب
                     </label>
                     <FormControl fullWidth>
                       <OutlinedInput
                         size="small"
-                        id="taxes"
-                        name="taxes"
-                        value={formData.taxes}
+                        id="tax"
+                        name="tax"
+                        value={formData.tax}
                         onChange={handleChange}
                       />
                     </FormControl>
-                    {errors.taxes && (
-                      <h6 className="error-log">{errors.taxes}</h6>
-                    )}
+                    {errors.tax && <h6 className="error-log">{errors.tax}</h6>}
                   </div>
 
-                  <div className="col-md-3">
-                    <label htmlFor="currencyId" className="d-flex">
+                  {/* <div className="col-md-3">
+                    <label htmlFor="currency" className="d-flex">
                       العملة
                     </label>
                     <select
-                      name="currencyId"
-                      value={formData.currencyId}
+                      name="currency"
+                      value={formData.currency}
                       onChange={handleChange}
                       className="form-control"
                     >
                       <option value="">اختر العملة</option>
-                      <option value="1">$</option>
-                      <option value="2">€</option>
-                      <option value="3">฿</option>
-                      <option value="4">¥</option>
+                      {Object.entries(currencyNames).map(([key, value]) => (
+                        <option key={key} value={key}>
+                          {value}
+                        </option>
+                      ))}
                     </select>
-                    {errors.currencyId && (
-                      <h6 className="error-log">{errors.currencyId}</h6>
+                    {errors.currency && (
+                      <h6 className="error-log">{errors.currency}</h6>
                     )}
-                  </div>
+                  </div> */}
 
                   <div className="col-md-12">
-                    <label className="d-flex mt-3">اختر اليوم</label>
-                    <div className="col-md-12 d-flex">
-                      <FormGroup className="d-flex col-md-3">
-                        <div className="col-md-2">
-                          <FormControlLabel
-                            className="d-flex"
-                            name="days"
-                            value="1"
-                            control={
-                              <Checkbox
-                                onChange={handleChange}
-                                checked={formData.days.includes(1)}
-                              />
-                            }
-                            label="السبت"
-                          />
-                        </div>
-                        <div className="col-md-2">
-                          <FormControlLabel
-                            className="d-flex"
-                            name="days"
-                            value="2"
-                            control={
-                              <Checkbox
-                                onChange={handleChange}
-                                checked={formData.days.includes(2)}
-                              />
-                            }
-                            label="الاحد"
-                          />
-                        </div>
-                      </FormGroup>
-                      <FormGroup className="d-flex col-md-3">
-                        <div className="col-md-2">
-                          <FormControlLabel
-                            className="d-flex"
-                            name="days"
-                            value="3"
-                            control={
-                              <Checkbox
-                                onChange={handleChange}
-                                checked={formData.days.includes(3)}
-                              />
-                            }
-                            label="الاثنين"
-                          />
-                        </div>
-                        <div className="col-md-2">
-                          <FormControlLabel
-                            className="d-flex"
-                            name="days"
-                            value="4"
-                            control={
-                              <Checkbox
-                                onChange={handleChange}
-                                checked={formData.days.includes(4)}
-                              />
-                            }
-                            label="الثلاثاء"
-                          />
-                        </div>
-                      </FormGroup>
-                      <FormGroup className="d-flex col-md-3">
-                        <div className="col-md-2">
-                          <FormControlLabel
-                            className="d-flex"
-                            name="days"
-                            value="5"
-                            control={
-                              <Checkbox
-                                onChange={handleChange}
-                                checked={formData.days.includes(5)}
-                              />
-                            }
-                            label="الاربعاء"
-                          />
-                        </div>
-                        <div className="col-md-2">
-                          <FormControlLabel
-                            className="d-flex"
-                            name="days"
-                            value="6"
-                            control={
-                              <Checkbox
-                                onChange={handleChange}
-                                checked={formData.days.includes(6)}
-                              />
-                            }
-                            label="الخميس"
-                          />
-                        </div>
-                      </FormGroup>
-                      <FormGroup className="d-flex col-md-3">
-                        <div className="col-md-2">
-                          <FormControlLabel
-                            className="d-flex"
-                            name="days"
-                            value="7"
-                            control={
-                              <Checkbox
-                                onChange={handleChange}
-                                checked={formData.days.includes(7)}
-                              />
-                            }
-                            label="الجمعه"
-                          />
-                        </div>
-                      </FormGroup>
+                    <label className="mt-3 d-flex">اختر اليوم</label>
+                    <div className="days">
+                      <div>
+                        <FormControlLabel
+                          className="d-flex"
+                          name="days"
+                          value="1"
+                          control={
+                            <Checkbox
+                              onChange={handleChange}
+                              checked={formData.days.includes(1)}
+                            />
+                          }
+                          label="السبت"
+                        />
+                      </div>
+                      <div>
+                        <FormControlLabel
+                          className="d-flex"
+                          name="days"
+                          value="2"
+                          control={
+                            <Checkbox
+                              onChange={handleChange}
+                              checked={formData.days.includes(2)}
+                            />
+                          }
+                          label="الاحد"
+                        />
+                      </div>
+                      <div>
+                        <FormControlLabel
+                          className="d-flex"
+                          name="days"
+                          value="3"
+                          control={
+                            <Checkbox
+                              onChange={handleChange}
+                              checked={formData.days.includes(3)}
+                            />
+                          }
+                          label="الاثنين"
+                        />
+                      </div>
+                      <div>
+                        <FormControlLabel
+                          className="d-flex"
+                          name="days"
+                          value="4"
+                          control={
+                            <Checkbox
+                              onChange={handleChange}
+                              checked={formData.days.includes(4)}
+                            />
+                          }
+                          label="الثلاثاء"
+                        />
+                      </div>
+                      <div>
+                        <FormControlLabel
+                          className="d-flex"
+                          name="days"
+                          value="5"
+                          control={
+                            <Checkbox
+                              onChange={handleChange}
+                              checked={formData.days.includes(5)}
+                            />
+                          }
+                          label="الاربعاء"
+                        />
+                      </div>
+                      <div>
+                        <FormControlLabel
+                          className="d-flex"
+                          name="days"
+                          value="6"
+                          control={
+                            <Checkbox
+                              onChange={handleChange}
+                              checked={formData.days.includes(6)}
+                            />
+                          }
+                          label="الخميس"
+                        />
+                      </div>
+                      <div>
+                        <FormControlLabel
+                          className="d-flex"
+                          name="days"
+                          value="7"
+                          control={
+                            <Checkbox
+                              onChange={handleChange}
+                              checked={formData.days.includes(7)}
+                            />
+                          }
+                          label="الجمعه"
+                        />
+                      </div>
                     </div>
                     {errors.days && (
                       <h6 className="error-log">{errors.days}</h6>

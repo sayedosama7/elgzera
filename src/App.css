@@ -1,7 +1,7 @@
 body {
   margin: 0;
   color: rgba(0, 0, 0, 0.87);
-  font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+  font-family: "Roboto", "Helvetiticket", "Arial", sans-serif;
   font-weight: 400;
   font-size: 1rem;
   line-height: 1.5;
@@ -9,13 +9,9 @@ body {
   background-color: #ecf0f5 !important;
 }
 
-.graid-chart {
-  /* margin-left: -10px; */
-}
-
 .span-edit {
   font-size: 20px !important;
-  margin-left: 30px !important;
+  margin-right: 30px !important;
   color: #000 !important;
   font-weight: 500 !important;
 }
@@ -24,72 +20,62 @@ body {
   font-size: 32px !important;
 }
 
-.table-style {
-  width: 85% !important;
-  margin-right: auto !important;
-  margin-left: auto !important;
-
-}
-
 .add-button {
-  position: relative;
-  left: 89px;
-  bottom: 25px;
   font-size: 21px;
   background-color: #1da2dc !important;
 }
 
 .table-head {
   display: flex;
-  justify-content: end;
-  position: relative;
-  right: 91px;
-  top: 27px;
-
-}
-
-.add-head {
-  display: flex;
-  position: relative;
-  top: 22px;
-  right: 8%;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
 .table-head-style {
-  background-color: #1da2dc;
+  background-color: #275a88;
   color: #fff;
 }
 
 .ticket {
   border-radius: 6px;
-  /* padding: 23px; */
   background-color: #f2efef9e;
   cursor: pointer;
-  width: 62%;
+}
+
+.pay-container {
+  -webkit-border-radius: 10px;
+  -moz-border-radius: 10px;
+  -ms-border-radius: 10px;
+  -o-border-radius: 10px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px #00000010;
+  padding-bottom: 15px !important;
 }
 
 .addIcon {
-  background-color: #1976d2;
+  background-color: #275a88;
   color: #fff;
   border-radius: 4px;
   margin-right: 10px;
-
 }
 
-.product-edit {
-  display: -ms-flexbox;
-  display: flex;
-  -ms-flex-wrap: wrap;
-  flex-wrap: wrap;
-  margin-right: -15px;
-  margin-left: -15px;
-  justify-content: center;
+.text-info {
+  color: #275a88 !important;
+}
+
+.bg-info {
+  background-color: #275a88 !important;
+}
+
+.btn-primary {
+  background-color: #275a88 !important;
+  border: none !important;
 }
 
 .color {
   background-color: "#fcf7f7" !important;
 }
-
 
 .login-edit {
   background-color: #fff;
@@ -112,4 +98,73 @@ body {
   font-weight: 500;
   display: flex;
   justify-content: start;
+}
+
+/* start spinner  */
+.container-spinner {
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(234, 237, 237, 0.521);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.spinner {
+  height: 50px;
+  width: 50px;
+  border-radius: 50%;
+  border: 4px solid #1DA2DC;
+  border-top: 4px solid #fff;
+  animation: rotate-spinner 1s linear infinite;
+}
+
+@keyframes rotate-spinner {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* alert  */
+.custom-confirm-button {
+  background-color: #1DA2DC !important;
+}
+
+.box-container {
+  width: 81.5% !important;
+  direction: rtl;
+  padding-left: 15px;
+}
+
+.days {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.css-h6yqnv {
+  padding: 10px !important;
+}
+
+.css-1og0dba {
+  padding: 10px !important;
+}
+
+@media(max-width:768px) {
+  .box-container {
+    width: 100% !important;
+    padding: 10px;
+  }
+
+  .ticket-box {
+    flex-direction: column !important;
+    align-items: normal !important;
+  }
 }

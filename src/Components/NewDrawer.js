@@ -6,10 +6,8 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import MuiAppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
 import CssBaseline from '@mui/material/CssBaseline';
 import List from '@mui/material/List';
-import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -65,6 +63,10 @@ const AppBar = styled(MuiAppBar, {
         }),
         marginRight: drawerWidth,
     }),
+    display: 'flex',
+    justifyContent: 'flex-end', // لمحاذاة الأيقونة إلى اليمين
+    background: 'none', // لجعل الخلفية شفافة
+    boxShadow: 'none', // لإزالة أي ظل
 }));
 
 const DrawerHeader = styled('div')(({ theme }) => ({
@@ -95,24 +97,29 @@ export default function PersistentDrawerRight() {
 
     return (
         <Box sx={{ display: 'flex' }}>
-            <CssBaseline />
-            <AppBar sx={{ backgroundColor: "#fcf7f7" }} position="fixed" open={open}>
-                <Toolbar>
-                    <Typography variant="h6" noWrap sx={{ flexGrow: 1 }} component="div">
-                    </Typography>
-                    <IconButton
-                        color="inherit"
-                        aria-label="open drawer"
-                        edge="end"
-                        onClick={handleDrawerOpen}
-                        sx={{ ...(open && { display: 'none' }), color: "#000" }}
-                    >
-                        <MenuIcon />
-                    </IconButton>
-                </Toolbar>
+        <CssBaseline />
+        <AppBar position="fixed" open={open}>
+            <IconButton
+                aria-label="open drawer"
+                edge="end"
+                onClick={handleDrawerOpen}
+                sx={{ 
+                    ...(open && { display: 'none' }), 
+                    color: "#000",
+                    backgroundColor: '#ecf0f5', 
+                    position: 'absolute', 
+                    right: '30px',
+                    top: 16,
+                    '&:hover': {
+                        backgroundColor: '#d3e0ea', 
+                    }
+                }}
+            >
+                    <MenuIcon />
+                </IconButton>
             </AppBar>
             <Main open={open}>
-                <DrawerHeader />
+                {/* محتوى الصفحة هنا */}
             </Main>
             <Drawer
                 className='color'

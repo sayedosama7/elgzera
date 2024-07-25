@@ -1,33 +1,45 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Drawer from "../../Components/Drawer";
 import { Box, TextField } from "@mui/material";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { baseURL, CRUISES, CRUISES_CREATE } from "../../Components/Api";
+import { Loading } from "../../Components/Loading";
 
 export default function AddCruises() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [loading, setLoading] = useState(true);
+
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     name: "",
-    statusId: "",
+    status: "",
   });
 
   useEffect(() => {
     const { id } = location.state || {};
     if (id) {
       fetchCruiseDetails(id);
+    } else {
+      setLoading(false);
     }
   }, [location.state]);
 
+  // for update 
   const fetchCruiseDetails = async (id) => {
     try {
-      const response = await axios.get(`http://org-bay.runasp.net/api/Cruises`);
-      const { name, statusId } = response.data.find(
-        (cruise) => cruise.id === id
-      );
-      setFormData({ name: name, statusId: statusId });
+      setLoading(true);
+      const response = await axios.get(`${baseURL}/cruises`);
+      const cruise = response.data.find((cruise) => cruise.id === id);
+      if (cruise) {
+        const { name, status } = cruise;
+        setFormData({ name, status });
+      }
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       console.error("Error fetching cruise details:", error);
     }
   };
@@ -41,7 +53,7 @@ export default function AddCruises() {
     e.preventDefault();
     const newErrors = {};
     if (!formData.name) newErrors.name = "من فضلك ادخل الاسم";
-    if (!formData.statusId) newErrors.statusId = " من فضلك اختر الحالة";
+    if (!formData.status) newErrors.status = "من فضلك اختر الحالة";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -49,11 +61,17 @@ export default function AddCruises() {
     }
 
     try {
+      setLoading(true);
+      const payload = {
+        name: formData.name,
+        status: formData.status === "Active" ? 1 : 2,
+      };
+
       if (location.state && location.state.id) {
-        // Editing existing Cruise
-        const response = await axios.put(
-          `http://org-bay.runasp.net/api/Cruises/${location.state.id}`,
-          formData,
+        // Edit Cruise
+        await axios.put(
+          `${baseURL}/${CRUISES}/${location.state.id}`,
+          payload,
           {
             headers: {
               "Content-Type": "application/json",
@@ -62,27 +80,33 @@ export default function AddCruises() {
         );
         localStorage.setItem("alertMessage", "تم تعديل المركب بنجاح");
       } else {
-        const response = await axios.post("http://org-bay.runasp.net/api/Cruises", formData, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        if (response.data) {
-          localStorage.setItem("alertMessage", "تم إضافة المركب بنجاح");
-        }
+        // add Cruise
+        await axios.post(
+          `${baseURL}/${CRUISES_CREATE}`,
+          payload,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        localStorage.setItem("alertMessage", "تم إضافة المركب بنجاح");
       }
       navigate("/AllCruises");
+      setLoading(false);
     } catch (error) {
-      console.log("Error adding cruise:", error, error.message);
+      setLoading(false);
+      console.log("Error adding cruise:", error.response?.data || error.message);
     }
   };
 
   return (
     <div>
+      {loading && <Loading />}
       <Drawer />
-      <Box sx={{ width: "80%", direction: "rtl" }}>
-        <div>
-          <h2 className="add-head">المراكب</h2>
+      <Box className='box-container'>
+      <div className="table-head">
+      <h2>المراكب</h2>
           <Link to="/AllCruises">
             <button className="btn btn-primary add-button">رجوع</button>
           </Link>
@@ -116,14 +140,14 @@ export default function AddCruises() {
                   </div>
 
                   <div className="col-md-6">
-                    <label htmlFor="statusId" className="d-flex">
+                    <label htmlFor="status" className="d-flex">
                       الحالة
                     </label>
                     <TextField
-                      id="statusId"
-                      name="statusId"
+                      id="status"
+                      name="status"
                       select
-                      value={formData.statusId}
+                      value={formData.status}
                       onChange={handleChange}
                       size="small"
                       fullWidth
@@ -132,11 +156,11 @@ export default function AddCruises() {
                       }}
                     >
                       <option value="">اختر الحالة</option>
-                      <option value="1">نشط</option>
-                      <option value="2">غير نشط</option>
+                      <option value="Active">نشط</option>
+                      <option value="InActive">غير نشط</option>
                     </TextField>
-                    {errors.statusId && (
-                      <h6 className="error-log">{errors.statusId}</h6>
+                    {errors.status && (
+                      <h6 className="error-log">{errors.status}</h6>
                     )}
                   </div>
                 </div>

@@ -183,23 +183,23 @@ export default function PayingOff() {
                         <Table sx={{ minWidth: 650 }} aria-label="simple table">
                             <TableHead className='table-head-style'>
                                 <TableRow>
-                                    <TableCell style={{ color: "#fff" }} align="right">الجنسية</TableCell>
-                                    <TableCell style={{ color: "#fff" }} align="right">اسم المرشد</TableCell>
-                                    <TableCell style={{ color: "#fff" }} align="right">اسم المركب</TableCell>
-                                    <TableCell style={{ color: "#fff" }} align="right">نوع التذكرة</TableCell>
-                                    <TableCell style={{ color: "#fff" }} align="right">عدد التذاكر</TableCell>
-                                    <TableCell style={{ color: "#fff" }} align="right">السعر</TableCell>
-                                    <TableCell style={{ color: "#fff" }} align="right">حذف</TableCell>
+                                    <TableCell className="text-center" style={{ color: "#fff" }} align="right">الجنسية</TableCell>
+                                    <TableCell className="text-center" style={{ color: "#fff" }} align="right">اسم المرشد</TableCell>
+                                    <TableCell className="text-center" style={{ color: "#fff" }} align="right">اسم المركب</TableCell>
+                                    <TableCell className="text-center" style={{ color: "#fff" }} align="right">نوع التذكرة</TableCell>
+                                    <TableCell className="text-center" style={{ color: "#fff" }} align="right">عدد التذاكر</TableCell>
+                                    <TableCell className="text-center" style={{ color: "#fff" }} align="right">السعر</TableCell>
+                                    <TableCell className="text-center" style={{ color: "#fff" }} align="right">حذف</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {tickets.map((ticket, index) => (
                                     <TableRow key={index}>
-                                        <TableCell align="right">{ticket.nationality}</TableCell>
-                                        <TableCell align="right">{ticket.guideName}</TableCell>
-                                        <TableCell align="right">{ticket.boatName}</TableCell>
-                                        <TableCell align="right">{ticket.ticketType}</TableCell>
-                                        <TableCell align="right">
+                                        <TableCell className="text-center" align="right">{ticket.nationality}</TableCell>
+                                        <TableCell className="text-center" align="right">{ticket.guideName}</TableCell>
+                                        <TableCell className="text-center" align="right">{ticket.boatName}</TableCell>
+                                        <TableCell className="text-center" align="right">{ticket.ticketType}</TableCell>
+                                        <TableCell className="text-center" align="right">
                                             <IconButton onClick={() => handleDecreaseTicketCount(index)}>
                                                 <RemoveIcon sx={{ backgroundColor: "#c72c2c", borderRadius: "3px", padding: " 0px", marginLeft: "5px", color: "#fff" }} />
                                             </IconButton>
@@ -208,8 +208,8 @@ export default function PayingOff() {
                                                 <AddIcon sx={{ backgroundColor: "#199119", borderRadius: "3px", padding: " 0px", marginRight: "5px", color: "#fff" }} />
                                             </IconButton>
                                         </TableCell>
-                                        <TableCell align="right">{ticket.ticketPrice * ticket.ticketCount}</TableCell>
-                                        <TableCell align="right">
+                                        <TableCell className="text-center" align="right">{ticket.ticketPrice * ticket.ticketCount}</TableCell>
+                                        <TableCell className="text-center" align="right">
                                             <IconButton onClick={() => handleDeleteTicket(index, ticket.ticketType)}>
                                                 <DeleteIcon />
                                             </IconButton>
@@ -219,8 +219,8 @@ export default function PayingOff() {
                             </TableBody>
                             <TableFooter>
                                 <TableRow>
-                                    <TableCell sx={{ fontSize: "20px" }} align="right" colSpan={5}>المجموع الكلي</TableCell>
-                                    <TableCell sx={{ fontSize: "20px" }} align="right">{total}</TableCell>
+                                    <TableCell className="text-center" sx={{ fontSize: "20px" }} align="right" colSpan={5}>المجموع الكلي</TableCell>
+                                    <TableCell className="text-center" sx={{ fontSize: "20px" }} align="right">{total}</TableCell>
                                 </TableRow>
                             </TableFooter>
                         </Table>
@@ -257,14 +257,14 @@ export default function PayingOff() {
                     <DialogTitle>
                         <h3 style={{ display: "flex", justifyContent: "end" }}>
 
-                        إضافة مرشد جديد
+                            إضافة مرشد جديد
                         </h3>
 
                     </DialogTitle>
                     <DialogContent>
                         <form>
                             <div className='container'>
-                                <div className='row ' style={{direction:"rtl"}}>
+                                <div className='row ' style={{ direction: "rtl" }}>
                                     <div className='col-md-6 mt-3'>
                                         <FormControl fullWidth>
                                             <OutlinedInput
@@ -288,7 +288,7 @@ export default function PayingOff() {
                                     <div className='col-md-6  mt-3'>
                                         <FormControl fullWidth>
                                             <Select
-                                            size='small'
+                                                size='small'
                                                 value={guideData.status}
                                                 onChange={(e) => setGuideData({ ...guideData, status: e.target.value })}
                                                 displayEmpty
@@ -300,7 +300,7 @@ export default function PayingOff() {
                                                 <MenuItem value="inactive">غير نشط</MenuItem>
                                             </Select>
                                         </FormControl>
-                                    </div>  
+                                    </div>
                                     <div className='col-md-6  mt-3'>
                                         <FormControl fullWidth>
                                             <OutlinedInput

@@ -4,6 +4,8 @@ import axios from "axios";
 import Drawer from "../../Components/Drawer";
 import { Box } from "@mui/material";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { baseURL, CATEGORIES, CATEGORIES_CREATE } from "../../Components/Api";
+import { Loading } from "../../Components/Loading";
 
 export default function AddCategory() {
   const [categoryName, setCategoryName] = useState("");
@@ -11,22 +13,31 @@ export default function AddCategory() {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const { id } = location.state || {};
     if (id) {
       fetchCategoryDetails(id);
+    } else {
+      setLoading(false);
     }
   }, [location.state]);
+
+  // for update category 
   const fetchCategoryDetails = async (id) => {
     try {
-      const response = await axios.get(`http://org-bay.runasp.net/api/Categories`);
+      setLoading(true);
+      const response = await axios.get(`${baseURL}/${CATEGORIES}`);
       const category = response.data.find((cat) => cat.id === id);
-      setCategoryName(category.name);
+      setCategoryName(category.title);
+      setLoading(false);
     } catch {
+      setLoading(false);
       console.log("error fetching data of category ");
     }
   };
+
   const handleInputChange = (e) => {
     setCategoryName(e.target.value);
   };
@@ -34,9 +45,9 @@ export default function AddCategory() {
   const validateForm = () => {
     const newErrors = {};
     if (!categoryName) newErrors.categoryName = "من فضلك ادخل فئة التذكرة";
-
     return newErrors;
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
@@ -46,36 +57,38 @@ export default function AddCategory() {
     }
 
     try {
+      setLoading(true);
       if (location.state && location.state.id) {
-        // Editing existing Category
+        // Edit Category
         const response = await axios.put(
-          `http://org-bay.runasp.net/api/Categories/${location.state.id}`,
-          { name: categoryName }
+          `${baseURL}/${CATEGORIES}/${location.state.id}`,
+          { title: categoryName }
         );
         localStorage.setItem("alertMessage", "تم تعديل الفئه بنجاح");
       } else {
-        const response = await axios.post("http://org-bay.runasp.net/api/Categories", {
-          name: categoryName,
+        // add category 
+        const response = await axios.post(`${baseURL}/${CATEGORIES_CREATE}`, {
+          title: categoryName,
         });
-
-        // تحقق من الاستجابة
         if (response.data) {
           localStorage.setItem("alertMessage", "تم إضافة فئة التذكرة بنجاح");
         }
       }
+      setLoading(false);
       navigate("/AllCategories");
     } catch (error) {
+      setLoading(false);
       console.error("There was an error adding the category!", error);
     }
   };
 
   return (
     <div>
+      {loading && <Loading />}
       <Drawer />
-      <Box sx={{ width: "80%", direction: "rtl" }}>
-        <div>
-          <h2 className="add-head">فئة التذكرة</h2>
-
+      <Box className='box-container'>
+        <div className="table-head">
+          <h2>فئة التذكرة</h2>
           <Link to="/AllCategories">
             <button className="btn btn-primary add-button">رجوع </button>
           </Link>
@@ -97,7 +110,7 @@ export default function AddCategory() {
                       <input
                         type="text"
                         className="form-control"
-                        name="name"
+                        name="title"
                         value={categoryName}
                         onChange={handleInputChange}
                       />
